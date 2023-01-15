@@ -1,7 +1,7 @@
 {
-  "name": "audibot",
+  "name": "audiobot",
   "version": "1.0.0",
-  "description": "AudiBot - Discord YoutTube audio bot",
+  "description": "AudioBot - Discord YoutTube audio bot",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
