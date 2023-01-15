@@ -1,2 +1,2 @@
-# Audi
-Repository for Audi - A discord bot that play youtube audio
+# AudiBot
+Repository for AudioBot - A discord bot that play youtube audio
