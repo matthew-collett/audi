@@ -19,6 +19,6 @@ module.exports = {
         // pause current song
 		queue.setPaused(false);
 
-        await interaction.reply(`${currentSong.title} has been resumed`)
+        await interaction.reply(`${queue.current.title} has been resumed`)
 	},
 }
