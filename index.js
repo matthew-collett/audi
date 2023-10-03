@@ -1,64 +1,56 @@
-require("dotenv").config();
+require("dotenv").config()
 
-const { REST } = require("@discordjs/rest");
-const { Routes } = require("discord-api-types/v10");
-const { Client, GatewayIntentBits, Collection } = require("discord.js");
-const { Player } = require("discord-player");
+const { REST } = require("@discordjs/rest")
+const { Routes } = require("discord-api-types/v10")
+const { Client, GatewayIntentBits, Collection } = require("discord.js")
+const { Player } = require("discord-player")
 
-const fs = require("fs");
-const path = require("path");
+const fs = require("fs")
+const path = require("path")
 
 const client = new Client({
-    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildVoiceStates]
-});
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildVoiceStates]
+})
 
-// load commands
-const commands = [];
-client.commands = new Collection();
+const commands = []
+client.commands = new Collection()
 
-const commandsPath = path.join(__dirname, "commands");
-const commandsFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith(".js"))
+const commandsPath = path.join(__dirname, "commands")
+const commandFiles = fs
+  .readdirSync(commandsPath)
+  .filter(file => file.endsWith(".js"))
 
-for (const file of commandsFiles) {
-    const command = require(path.join(commandsPath, file));
-    client.commands.set(command.data.name, command);
-    commands.push(command.data.toJSON());
-}
+commandFiles.forEach(file => {
+  const command = require(path.join(commandsPath, file))
+  client.commands.set(command.data.name, command)
+  commands.push(command.data.toJSON())
+})
 
 client.player = new Player(client, {
-    ytdlOptions: {
-        quality: "highestaudio",
-        highWaterMark: 1 << 25
-    }
-});
+  ytdlOptions: {
+    quality: "highestaudio",
+    highWaterMark: 1 << 25
+  }
+})
 
-client.on("ready", () => {
-    const guild_ids = client.guilds.cache.map(guild => guild.id);
-    const rest = new REST({version: "9"}).setToken(process.env.TOKEN);
-
-    for (const guildId of guild_ids) {
-        rest.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, guildId), {
-            body: commands
-        })
-        .then(() => console.log(`Added commands to ${guildId}`))
-        .catch(console.error);
-    }
-});
+client.once("ready", () => {
+  const rest = new REST({ version: "9" }).setToken(process.env.TOKEN)
+  client.guilds.cache.forEach(guild => {
+    rest.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, guild.id), { body: commands })
+      .then(() => console.log(`Added commands to ${guild.id}`))
+      .catch(console.error)
+  })
+})
 
 client.on("interactionCreate", async interaction => {
-    if (!interaction.isCommand()) {return;}
-
-    const command = client.commands.get(interaction.commandName);
-
-    if (!command) {return;}
-
-    try {
-        await command.execute({client, interaction});
-
-    } catch (err) {
-        console.error(err);
-        await interaction.reply("An error occured while executing that command");
+  try {
+    if (interaction.isCommand() && client.commands.get(interaction.commandName)) {
+      await client.commands.get(interaction.commandName).execute({ client, interaction })
     }
-});
+  } catch (err) {
+    console.error(err)
+    await interaction.reply("An error occurred while executing that command")
+  }
+})
 
-client.login(process.env.TOKEN);
+client.login(process.env.TOKEN)

@@ -1,35 +1,26 @@
 const { SlashCommandBuilder } = require("@discordjs/builders")
-const { EmbedBuilder } = require("discord.js")
+const { MessageEmbed } = require("discord.js")
 
-module.exports = {
-    data: new SlashCommandBuilder()
-        .setName("queue")
-        .setDescription("Show first 10 songs in the queue"),
+const data = () => new SlashCommandBuilder()
+  .setName("queue")
+  .setDescription("Show first 10 songs in the queue")
 
-    execute: async ({ client, interaction }) => {
-        const queue = client.player.getQueue(interaction.guildId)
+const execute = async ({ client, interaction }) => {
+  const queue = client.player.getQueue(interaction.guildId)
+  if (!queue || !queue.playing) {
+    return await interaction.reply("There are no songs in the queue")
+  }
 
-        // check if there are songs in queue
-        if (!queue || !queue.playing) {
-            await interaction.reply("There are no songs in the queue");
-            return;
-        }
-
-        // get first 10 songs in queue
-        const queueString = queue.tracks.slice(0, 10).map((song, i) => {
-            return `${i + 1}) [${song.duration}] - ${song.title}`}).join("\n\n")
-
-        // get current song
-        const currentSong = queue.current
-
-        await interaction.reply({
-            embeds: [
-                new EmbedBuilder()
-                    .setDescription(`**Currently Playing**\n` + 
-                        (`[${currentSong.duration}] - ${currentSong.title} \n\n**Queue**\n${queueString}`)
-                    )
-                    .setThumbnail(currentSong.thumbnail)
-            ]
-        })
-    }
+  const queueString = queue.tracks
+    .slice(0, 10)
+    .map((song, i) => `${i + 1}) [${song.duration}] - ${song.title}`)
+    .join("\n\n")
+  
+  const embed = new MessageEmbed()
+    .setDescription(`**Currently Playing**\n[${queue.current.duration}] - ${queue.current.title}\n\n**Queue**\n${queueString}`)
+    .setThumbnail(queue.current.thumbnail)
+    
+  await interaction.reply({ embeds: [embed] })
 }
+
+module.exports = { data, execute }
